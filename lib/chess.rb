@@ -69,16 +69,23 @@ module PieceMoves
   end
 
   # Rook and Queen common moves
-  def get_rook_moves(initial_move)
+  def get_rook_moves(initial_move, destination)
     possible_moves = 8
     valid_moves = [] # Empty array to store possible move (A)
 
     x = initial_move[0] # Horizontal moves (a)
     y = initial_move[1] # Vertical moves (b)
 
-    possible_moves.times do |i|
-      valid_moves << [x, i] # (a)
-      valid_moves << [i, y] # (b)
+    if x == destination[0]
+      possible_moves.times do |i|
+        valid_moves << [x, i] # (a)
+        break if [x, i] == destination
+      end
+    elsif y = destination[1]
+      possible_moves.times do |i|
+        valid_moves << [i, y] # (b)
+        break if [i, y] == destination
+      end
     end
     valid_moves #=> Return (R)
   end
@@ -107,7 +114,7 @@ module PieceMoves
   def get_queen_moves(initial_move, destination)
 
     using_bishop = get_diagonal_elements(initial_move, destination)
-    using_rook = get_rook_moves(initial_move)
+    using_rook = get_rook_moves(initial_move, destination)
 
     [using_bishop, using_rook]
   end
@@ -169,7 +176,7 @@ class Bishop < ChessPieces
 
     # Check if destination is empty #=> M(B)
     diagonal.each do | position |
-      return false if info_board[position[0], position[1]]
+      return false if info_board[position[0]][position[1]]
     end
     return true
   end
@@ -210,7 +217,7 @@ class Rook < ChessPieces
     possible_moves = get_rook_moves(initial_move)
     if possible_moves.include?(current_move) then
       possible_moves.each do | position |
-        return false if info_board[position[0], position[1]]
+        return false if info_board[position[0]][position[1]]
       end
       return info_board[current_move[0]][current_move[1]] == false
     end
@@ -254,17 +261,18 @@ class Queen
     possible_moves = get_queen_moves(initial_move, destination)
 
     #Handle queen using bishop
+    #TODO: handle this => - @type] if info_board.piece_at(destination) == nil
 
     #=> M(Q-B)
-    if possible_moves[0].include?(current_move) then
+    if possible_moves[0].include?(destination) then
       possible_moves[0].each do | position |
-        return false if info_board[position[0], position[1]]
+        return false if info_board[position[0]][position[1]]
       end
-    elsif possible_moves[1].include?(current_move) then
+    elsif possible_moves[1].include?(destination) then
       possible_moves[1].each do | position |
-        return false if info_board[position[0], position[1]]
+        return false if info_board[position[0]][position[1]]
       end
-      return info_board[current_move[0]][current_move[1]] == false
+      return info_board[destination[0]][destination[1]] == nil
     else
       return false
     end
