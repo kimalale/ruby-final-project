@@ -166,13 +166,14 @@ class Rook < ChessPieces
   attr_accessor :number_instances, :name
   @name = "Rook"
   @number_instances = 2
+  @possible_moves_count = 8
   @white_block = ["a1", "h1"]
   @black_block = ["a8", "h8"]
   @point = 5
 
   def validate_move(initial_move, current_move, info_board)
 
-    possible_moves = get_knight_moves(initial_move)
+    possible_moves = get_rook_moves(initial_move)
     if possible_moves.include?(current_move) then
       return info_board[current_move[0]][current_move[1]] == false
     end
@@ -184,8 +185,8 @@ class Rook < ChessPieces
 
     valid_moves = []
 
-    x = coordinate[0] # Horizontal moves
-    y = coordinate[1] # Vertical moves
+    x = initial_move[0] # Horizontal moves
+    y = initial_move[1] # Vertical moves
 
     8.times do |i|
       valid_moves << [x, i]
@@ -195,6 +196,46 @@ class Rook < ChessPieces
   end
 end
 
+
+class King
+  attr_accessor :number_instances, :name
+  @name = "King"
+  @number_instances = 2
+  @possible_moves_count = 8
+  @white_block = "e1"
+  @black_block = "e8"
+  @point = 9
+
+  def validate_move(initial_move, current_move, info_board)
+
+    possible_moves = get_king_moves(initial_move)
+    if possible_moves.include?(current_move) then
+      return info_board[current_move[0]][current_move[1]] == false
+    end
+    return false
+  end
+
+    #Generate all possible moves
+  def get_king_moves(initial_move)
+
+    valid_moves = []
+
+    x_x = initial_move[0] # Horizontal moves
+    y_y = initial_move[1] # Vertical moves
+
+    # Collection of possible horizontal and vertical moves
+    x = [-1, -1, -1,  0, 0,  1, 1, 1]
+    y = [-1,  0,  1, -1, 1, -1, 0, 1]
+
+    8.times do |i|
+      x_gx = x_x + x[i] # Horizontal point
+      y_by = y_y + y[i] # Vertical point
+      valid_moves << [x_gx, y_by]
+    end
+    valid_moves
+  end
+
+end
 
 
 class Chess
