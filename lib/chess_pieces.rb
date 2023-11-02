@@ -36,6 +36,10 @@ class Pawn < ChessPieces
   def validate_move(initial_move, destination, board)
     y = initial_move[0]
     x = initial_move[1]
+
+    # Check for backwards movement
+    return false if (destination[0] > initial_move[0] && type == "white") || (destination[0] < initial_move[0] && type == "black")
+
     if (destination == [y, x + 2] || [y, x - 2] && @first_move) || (destination == [y, x + 1] || [y, x - 1]) then
       @first_move = false
       return true
