@@ -1,3 +1,4 @@
+require './common_moves'
 
 # Base class for the pieces
 class ChessPieces
