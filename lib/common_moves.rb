@@ -7,6 +7,21 @@ module PieceMoves
     return 0 <= coordinate[0] && coordinate[0] < $board_size && 0 <= coordinate[1] && coordinate[1] < $board_size
   end
 
+  #Pawn moves
+  def get_pawn_moves(destination)
+    possible_moves = 6
+    valid_moves = []
+
+    x = [ 1, 1, 1, -1, -1, -1] # Horizontal moves (a)
+    y = [-1, 0, 1, -1,  0,  1] # Vertical moves (b)
+
+    possible_moves.times do |n|
+      move = [destination[0] + x[n], destination[1] + y[n]]
+      valid_moves << move if is_in_bounds(move)
+    end
+    valid_moves
+  end
+
   #Bishop and Queen common moves
   def get_diagonal_elements(starting_point, destination)
     # Check if the starting and destination points is valid
