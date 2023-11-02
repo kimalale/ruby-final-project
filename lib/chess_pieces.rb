@@ -3,6 +3,7 @@ require './common_moves'
 # Base class for the pieces
 class ChessPieces
   attr_accessor :name, :type, :white, :black, :point
+  include PieceMoves
   def validate_move(initial_move, current_move, info_board);end
   @white = []
   @point = nil
@@ -34,21 +35,14 @@ class Pawn < ChessPieces
   end
 
   def validate_move(initial_move, destination, board)
-    y = initial_move[0]
-    x = initial_move[1]
-
-    # Check for backwards movement
-    return false if (destination[0] > initial_move[0] && type == "white") || (destination[0] < initial_move[0] && type == "black")
-
-    if (destination == [y, x + 2] || [y, x - 2] && @first_move) || (destination == [y, x + 1] || [y, x - 1]) then
-      @first_move = false
-      return true
+  possible_moves = get_pawn_moves(initial_move)
+  if possible_moves.include?(current_move) then
+    possible_moves.each do | position |
+      return false if destination[1] == position[1] && info_board[position[0]][position[1]]
     end
-    if ((x > 0 && current == [y - 1, x - 1] || [y + 1, x - 1]) || (x < 0 && current == [y - 1, x - 1] || [y + 1, x - 1])) then
-      return true
-    else
-      return false
-    end
+    return true
+  end
+  return false
   end
 end
 
