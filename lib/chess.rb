@@ -52,7 +52,7 @@ module PieceMoves
 
   # Knight and Queen common moves
   def get_knight_moves(coordinate)
-
+    possible_moves = 8
     valid_moves = []  # Empty array to store possible move
 
     # Combinations to generate all possible moves => Given a coordinate, for knight
@@ -60,7 +60,7 @@ module PieceMoves
     y = [1, 2, 2, 1, -1, -2, -2, -1]
 
     # Loop, validate and store
-    @possible_moves_count.times do |n|
+    possible_moves.times do |n|
       move = [coordinate[0] + x[n], coordinate[1] + y[n]]
       valid_moves << move if is_in_bounds(move)
     end
@@ -70,13 +70,13 @@ module PieceMoves
 
   # Rook and Queen common moves
   def get_rook_moves(initial_move)
-
+    possible_moves = 8
     valid_moves = [] # Empty array to store possible move (A)
 
     x = initial_move[0] # Horizontal moves (a)
     y = initial_move[1] # Vertical moves (b)
 
-    8.times do |i|
+    possible_moves.times do |i|
       valid_moves << [x, i] # (a)
       valid_moves << [i, y] # (b)
     end
@@ -85,7 +85,7 @@ module PieceMoves
 
   # King Moves
   def get_king_moves(initial_move)
-
+    possible_moves = 8
     valid_moves = [] # (A)
 
     x_x = initial_move[0] # (a)
@@ -95,7 +95,7 @@ module PieceMoves
     x = [-1, -1, -1,  0, 0,  1, 1, 1]
     y = [-1,  0,  1, -1, 1, -1, 0, 1]
 
-    8.times do |i|
+    possible_moves.times do |i|
       x_gx = x_x + x[i] # (a)
       y_by = y_y + y[i] # (b)
       valid_moves << [x_gx, y_by]
@@ -107,77 +107,58 @@ end
 # => => => => => => => => => => End Module <= <= <= <= <= <= <= <= <=
 
 
+# Base class for the pieces
 class ChessPieces
-  attr_accessor :starting_position, :current_position, :point
-  @board_size = 8
-  def initialize(start_position)
-    @starting_position = start_position
-  end
-
+  attr_accessor :name, :type, :white, :black, :point
   def validate_move(initial_move, current_move, info_board);end
-
-
 end
 
+# (1)
 class Pawn < ChessPieces
-
-  attr_accessor :number_instances, :first_move, :name
   @name = "Pawn"
-  @black_pawn = 6
-  @white_pawn = 1
+  @white = ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"] #=> Initial White Point I(w)
+  @black = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8"] #=> Initial Black Point I(b)
+  @point = 1
 
-  def initialize(player_type, number_instance = 8)
-    super(@white_pawn) if player_type
-    super(@black_pawn) if !player_type
-    @number_instances = number_instance
-    @point = 1
+  def initialize(player_type)
+    @type = player_type
     @first_move = true
   end
-  public
 
-
-
-#  x moves left or right, left if col is 8, then left and right if col is < 8
-#  x moves left or right, right if col is 0, then left and right if col is > 0
-#  y moves 2 steps up if the piece hasnt moved
-# y moves 1 step up if the piece has moved
-
-  def validate_move(initial_move, current_move, board)
-
+  def validate_move(initial_move, destination, board)
     y = initial_move[0]
     x = initial_move[1]
-
-    if (current_move == [y, x + 2] || [y, x - 2] && @first_move) || (current_move == [y, x + 1] || [y, x - 1]) then
+    if (destination == [y, x + 2] || [y, x - 2] && @first_move) || (destination == [y, x + 1] || [y, x - 1]) then
       @first_move = false
       return true
     end
-
     if ((x > 0 && current == [y - 1, x - 1] || [y + 1, x - 1]) || (x < 0 && current == [y - 1, x - 1] || [y + 1, x - 1])) then
       return true
     else
       return false
     end
-
   end
 end
 
+# (2)
 class Bishop < ChessPieces
-
-  attr_accessor :number_instances
   @name = "Bishop"
-  @number_instances = 2
-  @white_block = "c1"
-  @black_block = "f1"
+  @white = ["c1", "f1"] #=> I(w)
+  @black = ["c8", "f8"] #=> I(b)
   @point = 3
 
-  def validate_move(initial_move, current_move, info_board)
+  def initialize(player_type)
+    @type = player_type
+  end
 
+  def validate_move(initial_move, destination, info_board)
     begin
-      diagonal = get_diagonal_elements(initial_move, current_move)
+      diagonal = get_diagonal_elements(initial_move, destination)
     rescue OutOfBounds
-      p "Starting position is out of range [0-7, 0-7])"
+      p "Given point is out of range [0-7, 0-7])"
     end
 
+    # Check if destination is empty #=> M(c)
     diagonal.each do | position |
       return false if info_board[position[0], position[1]]
     end
@@ -185,32 +166,36 @@ class Bishop < ChessPieces
   end
 end
 
+# (3)
 class Knight < ChessPieces
-  attr_accessor :number_instances, :name
   @name = "Knight"
-  @number_instances = 2
-  @white_block = ["b1", "g1"]
-  @black_block = ["b8", "g8"]
-  @possible_moves_count = 8
+  @white = ["b1", "g1"] #=> I(w)
+  @black = ["b8", "g8"] #=> I(b)
   @point = 3
 
-  def validate_move(initial_move, current_move, info_board)
+  def initialize(player_type)
+    @type = player_type
+  end
+
+  def validate_move(initial_move, destination, info_board)
     possible_moves = get_knight_moves(initial_move)
     possible_moves.each do | position |
-      return true if position == current_move
+      return true if position == destination
     end
     return false
   end
 end
 
+# (4)
 class Rook < ChessPieces
-  attr_accessor :number_instances, :name
   @name = "Rook"
-  @number_instances = 2
-  @possible_moves_count = 8
-  @white_block = ["a1", "h1"]
-  @black_block = ["a8", "h8"]
+  @white_block = ["a1", "h1"] #=> I(w)
+  @black_block = ["a8", "h8"] #=> I(b)
   @point = 5
+
+  def initialize(player_type)
+    @type = player_type
+  end
 
   def validate_move(initial_move, current_move, info_board)
     possible_moves = get_rook_moves(initial_move)
@@ -221,14 +206,36 @@ class Rook < ChessPieces
   end
 end
 
+# (5)
 class King
-  attr_accessor :number_instances, :name
   @name = "King"
-  @number_instances = 2
-  @possible_moves_count = 8
-  @white_block = "e1"
-  @black_block = "e8"
+  @white_block = "e1" #=> I(w)
+  @black_block = "e8" #=> I(b)
   @point = 9
+
+  def initialize(player_type)
+    @type = player_type
+  end
+
+  def validate_move(initial_move, current_move, info_board)
+    possible_moves = get_king_moves(initial_move)
+    if possible_moves.include?(current_move) then
+      return info_board[current_move[0]][current_move[1]] == false
+    end
+    return false
+  end
+end
+
+# (6)
+class Queen
+  @name = "Queen"
+  @white = "d1" #=> I(w)
+  @black = "d8" #=> I(b)
+  @point = 9
+
+  def initialize(player_type)
+    @type = player_type
+  end
 
   def validate_move(initial_move, current_move, info_board)
     possible_moves = get_king_moves(initial_move)
