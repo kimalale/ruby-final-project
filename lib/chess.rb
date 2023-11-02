@@ -103,6 +103,15 @@ module PieceMoves
     valid_moves # (R)
   end
 
+   # Queen Moves
+  def get_queen_moves(initial_move, destination)
+
+    using_bishop = get_diagonal_elements(initial_move, destination)
+    using_rook = get_rook_moves(initial_move)
+
+    [using_bishop, using_rook]
+  end
+
 end
 # => => => => => => => => => => End Module <= <= <= <= <= <= <= <= <=
 
@@ -158,7 +167,7 @@ class Bishop < ChessPieces
       p "Given point is out of range [0-7, 0-7])"
     end
 
-    # Check if destination is empty #=> M(c)
+    # Check if destination is empty #=> M(B)
     diagonal.each do | position |
       return false if info_board[position[0], position[1]]
     end
@@ -200,6 +209,9 @@ class Rook < ChessPieces
   def validate_move(initial_move, current_move, info_board)
     possible_moves = get_rook_moves(initial_move)
     if possible_moves.include?(current_move) then
+      possible_moves.each do | position |
+        return false if info_board[position[0], position[1]]
+      end
       return info_board[current_move[0]][current_move[1]] == false
     end
     return false
@@ -237,12 +249,26 @@ class Queen
     @type = player_type
   end
 
-  def validate_move(initial_move, current_move, info_board)
-    possible_moves = get_king_moves(initial_move)
-    if possible_moves.include?(current_move) then
+  def validate_move(initial_move, destination, info_board)
+
+    possible_moves = get_queen_moves(initial_move, destination)
+
+    #Handle queen using bishop
+
+    #=> M(Q-B)
+    if possible_moves[0].include?(current_move) then
+      possible_moves[0].each do | position |
+        return false if info_board[position[0], position[1]]
+      end
+    elsif possible_moves[1].include?(current_move) then
+      possible_moves[1].each do | position |
+        return false if info_board[position[0], position[1]]
+      end
       return info_board[current_move[0]][current_move[1]] == false
+    else
+      return false
     end
-    return false
+    return true
   end
 end
 
