@@ -147,8 +147,8 @@ end
 # (1)
 class Pawn < ChessPieces
   @@name = "Pawn"
-  @white = ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"] #=> Initial White Point I(w)
-  @black = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8"] #=> Initial Black Point I(b)
+  @white = ["a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"] #=> Initial White Point I(w)
+  @black = ["a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7"] #=> Initial Black Point I(b)
   @point = 1
 
   def initialize(player_type)
@@ -315,8 +315,6 @@ class Chess
 
   def add_pieces(board)
     #throw InvalidBoardError if board.empty?
-
-
     bundle_pieces.each do | player_piece |
 
       # TODO: place white piece on the board
@@ -325,7 +323,7 @@ class Chess
         @board[chess_coordinate[0]][chess_coordinate[1]] = player_piece.new("white")
       end
 
-      # TODO: place black piece on the board
+      #TODO: place black piece on the board
       player_piece.black.each do | piece_location |
         chess_coordinate = chess_to_coordinates(piece_location)
         @board[chess_coordinate[0]][chess_coordinate[1]] = player_piece.new("black")
@@ -346,8 +344,8 @@ class Chess
   # Convert chess notation to coordinates (e.g., "A1" to [0, 0])
   def chess_to_coordinates(chess_string)
     chess_string = chess_string.downcase
-    x = chess_string[0].ord - 'a'.ord
-    y = chess_string[1].to_i - 1
+    x = chess_string[1].to_i - 1
+    y = chess_string[0].ord - 'a'.ord
     return [x, y]
   end
 
@@ -382,43 +380,43 @@ class Chess
   end
 
   def format_piece(piece)
-    case piece::class
-    when Pawn
+    case piece::class.to_s
+    when "Pawn" then
       case piece::type
       when "white"
         "\u2659"
       else
         "\u265F"
       end
-    when Bishop
+    when "Bishop"
       case piece::type
       when "white"
         "\u2657"
       else
         "\u265D"
       end
-    when Knight
+    when "Knight"
       case piece::type
       when "white"
         "\u2658"
       else
         "\u265E"
       end
-    when Rook
+    when "Rook"
       case piece::type
       when "white"
         "\u2656"
       else
-        "\265C"
+        "\u265C"
       end
-    when King
+    when "King"
       case piece::type
       when "white"
         "\u2654"
       else
         "\u265A"
       end
-    when Queen
+    when "Queen"
       case piece::type
       when "white"
         "\u2655"
@@ -439,9 +437,6 @@ class Chess
   end
 
 end
-
-puts "\u2654"
-
 board = Chess.new
 #board.move_piece([6, 1], [5,0])
 board.show_board
