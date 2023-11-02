@@ -39,7 +39,6 @@ class Chess
 
   def bundle_pieces
     pieces = []
-
     pieces << Pawn << Bishop << Knight <<  Rook << King << Queen
     pieces
   end
