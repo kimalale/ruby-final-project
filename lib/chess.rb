@@ -1,3 +1,112 @@
+module PieceMoves
+
+  $board_size = 8
+
+  # Validate generated moves bounds
+  def is_in_bounds(coordinate)
+    return 0 <= coordinate[0] && coordinate[0] < $board_size && 0 <= coordinate[1] && coordinate[1] < $board_size
+  end
+
+  #Bishop and Queen common moves
+  def get_diagonal_elements(starting_point, destination)
+    # Check if the starting and destination points is valid
+    if (starting_point[0] < 0 || starting_point[1] >= 8) || (destination[0] < 0 || destination[1] >= 8)
+      throw OutOfBounds # Throw an exception
+    end
+
+    diagonal_elements = [] # Empty array to store possible diagonal move
+
+    # Starting point (row and column) for the diagonal
+    row, col = starting_point[0], starting_point[1]
+
+    # Ensure a loop executes once for the required diagonal move
+    if (destination[0] < starting_point[0] && destination[1] < starting_point[1]) # upper left diagonal
+      while row > 0 && col > 0
+        row -= 1
+        col -= 1
+      diagonal_elements << [row, col]
+      end
+    elsif (destination[0] > starting_point[0] && destination[1] > starting_point[1]) # lower right diagonal
+      while row < 7 && col < 7
+        row += 1
+        col += 1
+       diagonal_elements << [row, col]
+      end
+    elsif (destination[0] < starting_point[0] && destination[1] > starting_point[1]) # upper right diagonal
+      while row > 0 && col > 0
+        row -= 1
+        col += 1
+        diagonal_elements << [row, col]
+      end
+    else (destination[0] > starting_point[0] && destination[1] < starting_point[1]) # lower left diagonal
+      while row < 7 && col > 0
+        row += 1
+        col -= 1
+        diagonal_elements << [row, col]
+      end
+    end
+
+    diagonal_elements #=> Return (R)
+  end
+
+
+  # Knight and Queen common moves
+  def get_knight_moves(coordinate)
+
+    valid_moves = []  # Empty array to store possible move
+
+    # Combinations to generate all possible moves => Given a coordinate, for knight
+    x = [2, 1, -1, -2, -2, -1, 1, 2]
+    y = [1, 2, 2, 1, -1, -2, -2, -1]
+
+    # Loop, validate and store
+    @possible_moves_count.times do |n|
+      move = [coordinate[0] + x[n], coordinate[1] + y[n]]
+      valid_moves << move if is_in_bounds(move)
+    end
+
+    valid_moves #=> Return (R)
+  end
+
+  # Rook and Queen common moves
+  def get_rook_moves(initial_move)
+
+    valid_moves = [] # Empty array to store possible move (A)
+
+    x = initial_move[0] # Horizontal moves (a)
+    y = initial_move[1] # Vertical moves (b)
+
+    8.times do |i|
+      valid_moves << [x, i] # (a)
+      valid_moves << [i, y] # (b)
+    end
+    valid_moves #=> Return (R)
+  end
+
+  # King Moves
+  def get_king_moves(initial_move)
+
+    valid_moves = [] # (A)
+
+    x_x = initial_move[0] # (a)
+    y_y = initial_move[1] # (b)
+
+    # Collection of possible horizontal and vertical moves
+    x = [-1, -1, -1,  0, 0,  1, 1, 1]
+    y = [-1,  0,  1, -1, 1, -1, 0, 1]
+
+    8.times do |i|
+      x_gx = x_x + x[i] # (a)
+      y_by = y_y + y[i] # (b)
+      valid_moves << [x_gx, y_by]
+    end
+    valid_moves # (R)
+  end
+
+end
+# => => => => => => => => => => End Module <= <= <= <= <= <= <= <= <=
+
+
 class ChessPieces
   attr_accessor :starting_position, :current_position, :point
   @board_size = 8
@@ -6,9 +115,7 @@ class ChessPieces
   end
 
   def validate_move(initial_move, current_move, info_board);end
-  def is_in_bounds(coordinate)
-    return 0 <= coordinate[0] && coordinate[0] < @board_size && 0 <= coordinate[1] && coordinate[1] < @board_size
-  end
+
 
 end
 
@@ -67,62 +174,18 @@ class Bishop < ChessPieces
 
     begin
       diagonal = get_diagonal_elements(initial_move, current_move)
-    rescue PositionError
+    rescue OutOfBounds
       p "Starting position is out of range [0-7, 0-7])"
     end
 
     diagonal.each do | position |
       return false if info_board[position[0], position[1]]
     end
-
     return true
-
   end
-
-  def get_diagonal_elements(starting_point, destination)
-    # Check if the starting point is valid
-    if starting_point[0] < 0 || starting_point[1] >= 8
-      throw PositionError
-    end
-
-    diagonal_elements = []
-     # Starting point (row and column) for the diagonal
-    row, col = starting_point[0], starting_point[1]
-
-    if (destination[0] < starting_point[0] && destination[1] < starting_point[1])
-      while row > 0 && col > 0
-        row -= 1
-        col -= 1
-      diagonal_elements << [row, col]
-      end
-    elsif (destination[0] > starting_point[0] && destination[1] > starting_point[1])
-      while row < 7 && col < 7
-        row += 1
-        col += 1
-       diagonal_elements << [row, col]
-      end
-    elsif (destination[0] < starting_point[0] && destination[1] > starting_point[1])
-      while row > 0 && col > 0
-        row -= 1
-        col += 1
-        diagonal_elements << [row, col]
-      end
-    else (destination[0] > starting_point[0] && destination[1] < starting_point[1])
-      while row < 7 && col > 0
-        row += 1
-        col -= 1
-        diagonal_elements << [row, col]
-      end
-    end
-    diagonal_elements
-  end
-
-
 end
 
-
 class Knight < ChessPieces
-
   attr_accessor :number_instances, :name
   @name = "Knight"
   @number_instances = 2
@@ -132,35 +195,13 @@ class Knight < ChessPieces
   @point = 3
 
   def validate_move(initial_move, current_move, info_board)
-
     possible_moves = get_knight_moves(initial_move)
-
     possible_moves.each do | position |
       return true if position == current_move
     end
     return false
-
   end
-
-  def get_knight_moves(coordinate)
-
-    valid_moves = []
-    #Generate all possible moves
-    x = [2, 1, -1, -2, -2, -1, 1, 2]
-    y = [1, 2, 2, 1, -1, -2, -2, -1]
-
-    #Store valid moves
-    @possible_moves_count.times do |n|
-      move = [coordinate[0] + x[n], coordinate[1] + y[n]]
-      valid_moves << move if is_in_bounds(move)
-    end
-
-    valid_moves
-  end
-
-
 end
-
 
 class Rook < ChessPieces
   attr_accessor :number_instances, :name
@@ -172,30 +213,13 @@ class Rook < ChessPieces
   @point = 5
 
   def validate_move(initial_move, current_move, info_board)
-
     possible_moves = get_rook_moves(initial_move)
     if possible_moves.include?(current_move) then
       return info_board[current_move[0]][current_move[1]] == false
     end
     return false
   end
-
-    #Generate all possible moves
-  def get_rook_moves(initial_move)
-
-    valid_moves = []
-
-    x = initial_move[0] # Horizontal moves
-    y = initial_move[1] # Vertical moves
-
-    8.times do |i|
-      valid_moves << [x, i]
-      valid_moves << [i, y]
-    end
-    valid_moves
-  end
 end
-
 
 class King
   attr_accessor :number_instances, :name
@@ -207,42 +231,18 @@ class King
   @point = 9
 
   def validate_move(initial_move, current_move, info_board)
-
     possible_moves = get_king_moves(initial_move)
     if possible_moves.include?(current_move) then
       return info_board[current_move[0]][current_move[1]] == false
     end
     return false
   end
-
-    #Generate all possible moves
-  def get_king_moves(initial_move)
-
-    valid_moves = []
-
-    x_x = initial_move[0] # Horizontal moves
-    y_y = initial_move[1] # Vertical moves
-
-    # Collection of possible horizontal and vertical moves
-    x = [-1, -1, -1,  0, 0,  1, 1, 1]
-    y = [-1,  0,  1, -1, 1, -1, 0, 1]
-
-    8.times do |i|
-      x_gx = x_x + x[i] # Horizontal point
-      y_by = y_y + y[i] # Vertical point
-      valid_moves << [x_gx, y_by]
-    end
-    valid_moves
-  end
-
 end
 
 
+
 class Chess
-
   attr_accessor :board, :points
-
-
   def initialize
     @board_height = 8
     @board_width = 8
@@ -281,6 +281,12 @@ class Chess
   end
 
   def move_piece(piece_location, destination)
+
+    # # Check if the starting and destination points is valid
+    # if (starting_point[0] < 0 || starting_point[1] >= 8) || (destination[0] < 0 || destination[1] >= 8)
+    #   throw OutOfBounds # Throw an exception
+    # end
+
 
     piece = @board[piece_location[0]][piece_location[1]]
     return if !piece.validate_move(piece_location, destination, @occupied_board)
