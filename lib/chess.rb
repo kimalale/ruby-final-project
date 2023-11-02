@@ -127,11 +127,26 @@ end
 class ChessPieces
   attr_accessor :name, :type, :white, :black, :point
   def validate_move(initial_move, current_move, info_board);end
+  @white = []
+  @point = nil
+  @black = []
+  def self.white
+    @white
+  end
+  def self.black
+    @black
+  end
+  def self.type
+    @type
+  end
+  def self.point
+    @point
+  end
 end
 
 # (1)
 class Pawn < ChessPieces
-  @name = "Pawn"
+  @@name = "Pawn"
   @white = ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"] #=> Initial White Point I(w)
   @black = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8"] #=> Initial Black Point I(b)
   @point = 1
@@ -205,8 +220,8 @@ end
 # (4)
 class Rook < ChessPieces
   @name = "Rook"
-  @white_block = ["a1", "h1"] #=> I(w)
-  @black_block = ["a8", "h8"] #=> I(b)
+  @white = ["a1", "h1"] #=> I(w)
+  @black = ["a8", "h8"] #=> I(b)
   @point = 5
 
   def initialize(player_type)
@@ -226,10 +241,10 @@ class Rook < ChessPieces
 end
 
 # (5)
-class King
+class King < ChessPieces
   @name = "King"
-  @white_block = "e1" #=> I(w)
-  @black_block = "e8" #=> I(b)
+  @white = ["e1"] #=> I(w)
+  @black = ["e8"] #=> I(b)
   @point = 9
 
   def initialize(player_type)
@@ -246,10 +261,10 @@ class King
 end
 
 # (6)
-class Queen
+class Queen < ChessPieces
   @name = "Queen"
-  @white = "d1" #=> I(w)
-  @black = "d8" #=> I(b)
+  @white = ["d1"] #=> I(w)
+  @black = ["d8"] #=> I(b)
   @point = 9
 
   def initialize(player_type)
@@ -299,15 +314,44 @@ class Chess
   end
 
   def add_pieces(board)
-    throw "Invalid board" if board.empty?
+    #throw InvalidBoardError if board.empty?
 
-    8.times do | m|
-      @board[6][m] = Pawn.new(true)
+
+    bundle_pieces.each do | player_piece |
+
+      # TODO: place white piece on the board
+      player_piece.white.each do | piece_location |
+        chess_coordinate = chess_to_coordinates(piece_location)
+        @board[chess_coordinate[0]][chess_coordinate[1]] = player_piece.new("white")
+      end
+
+      # TODO: place black piece on the board
+      player_piece.black.each do | piece_location |
+        chess_coordinate = chess_to_coordinates(piece_location)
+        @board[chess_coordinate[0]][chess_coordinate[1]] = player_piece.new("black")
+      end
     end
 
     occupied_board
 
   end
+
+  def bundle_pieces
+    pieces = []
+
+    pieces << Pawn << Bishop << Knight <<  Rook << King << Queen
+    pieces
+  end
+
+  # Convert chess notation to coordinates (e.g., "A1" to [0, 0])
+  def chess_to_coordinates(chess_string)
+    chess_string = chess_string.downcase
+    x = chess_string[0].ord - 'a'.ord
+    y = chess_string[1].to_i - 1
+    return [x, y]
+  end
+
+
 
   def occupied_board
     @board_height.times do | row |
@@ -337,23 +381,68 @@ class Chess
 
   end
 
-  def format_board(piece)
-
+  def format_piece(piece)
+    case piece::class
+    when Pawn
+      case piece::type
+      when "white"
+        "\u2659"
+      else
+        "\u265F"
+      end
+    when Bishop
+      case piece::type
+      when "white"
+        "\u2657"
+      else
+        "\u265D"
+      end
+    when Knight
+      case piece::type
+      when "white"
+        "\u2658"
+      else
+        "\u265E"
+      end
+    when Rook
+      case piece::type
+      when "white"
+        "\u2656"
+      else
+        "\265C"
+      end
+    when King
+      case piece::type
+      when "white"
+        "\u2654"
+      else
+        "\u265A"
+      end
+    when Queen
+      case piece::type
+      when "white"
+        "\u2655"
+      else
+        "\u265B"
+      end
+    end
   end
-
 
   def show_board
 
     @board.each do |valueline|
-      print valueline
+      valueline.each do | piece |
+        print " #{self.format_piece(piece)} "
+      end
       puts ""
     end
-
-
   end
 
 end
 
+puts "\u2654"
+
 board = Chess.new
-board.move_piece([6, 1], [5,0])
+#board.move_piece([6, 1], [5,0])
 board.show_board
+
