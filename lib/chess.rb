@@ -162,6 +162,40 @@ class Knight < ChessPieces
 end
 
 
+class Rook < ChessPieces
+  attr_accessor :number_instances, :name
+  @name = "Rook"
+  @number_instances = 2
+  @white_block = ["a1", "h1"]
+  @black_block = ["a8", "h8"]
+  @point = 5
+
+  def validate_move(initial_move, current_move, info_board)
+
+    possible_moves = get_knight_moves(initial_move)
+    if possible_moves.include?(current_move) then
+      return info_board[current_move[0]][current_move[1]] == false
+    end
+    return false
+  end
+
+    #Generate all possible moves
+  def get_rook_moves(initial_move)
+
+    valid_moves = []
+
+    x = coordinate[0] # Horizontal moves
+    y = coordinate[1] # Vertical moves
+
+    8.times do |i|
+      valid_moves << [x, i]
+      valid_moves << [i, y]
+    end
+    valid_moves
+  end
+end
+
+
 
 class Chess
 
