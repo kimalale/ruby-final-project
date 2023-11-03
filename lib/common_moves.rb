@@ -39,24 +39,28 @@ module PieceMoves
       while row > 0 && col > 0
         row -= 1
         col -= 1
+        break if [row, col] == destination
       diagonal_elements << [row, col]
       end
     elsif (destination[0] > starting_point[0] && destination[1] > starting_point[1]) # lower right diagonal
       while row < 7 && col < 7
         row += 1
         col += 1
+        break if [row, col] == destination
        diagonal_elements << [row, col]
       end
     elsif (destination[0] < starting_point[0] && destination[1] > starting_point[1]) # upper right diagonal
       while row > 0 && col > 0
         row -= 1
         col += 1
+        break if [row, col] == destination
         diagonal_elements << [row, col]
       end
     else (destination[0] > starting_point[0] && destination[1] < starting_point[1]) # lower left diagonal
       while row < 7 && col > 0
         row += 1
         col -= 1
+        break if [row, col] == destination
         diagonal_elements << [row, col]
       end
     end
@@ -120,7 +124,7 @@ module PieceMoves
     possible_moves.times do |i|
       x_gx = x_x + x[i] # (a)
       y_by = y_y + y[i] # (b)
-      valid_moves << [x_gx, y_by]
+      valid_moves << [x_gx, y_by] if is_in_bounds([x_gx, y_by])
     end
     valid_moves # (R)
   end
