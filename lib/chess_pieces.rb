@@ -66,6 +66,7 @@ class Bishop < ChessPieces
 
     # Check if destination is empty #=> M(B)
     diagonal.each do | position |
+      return true if destination == position
       return false if info_board[position[0]][position[1]]
     end
     return true
@@ -107,6 +108,7 @@ class Rook < ChessPieces
     possible_moves = get_rook_moves(initial_move)
     if possible_moves.include?(current_move) then
       possible_moves.each do | position |
+        return true if current_move == position
         return false if info_board[position[0]][position[1]]
       end
       return info_board[current_move[0]][current_move[1]] == false
@@ -128,10 +130,7 @@ class King < ChessPieces
 
   def validate_move(initial_move, current_move, info_board)
     possible_moves = get_king_moves(initial_move)
-    if possible_moves.include?(current_move) then
-      return info_board[current_move[0]][current_move[1]] == false
-    end
-    return false
+      return possible_moves.include?(current_move)
   end
 end
 
@@ -156,13 +155,15 @@ class Queen < ChessPieces
     #=> M(Q-B)
     if possible_moves[0].include?(destination) then
       possible_moves[0].each do | position |
+        return true if destination == position
         return false if info_board[position[0]][position[1]]
       end
     elsif possible_moves[1].include?(destination) then
       possible_moves[1].each do | position |
+        return true if destination == position
         return false if info_board[position[0]][position[1]]
       end
-      return info_board[destination[0]][destination[1]] == nil
+      return info_board[destination[0]][destination[1]] == nil # Might not get reached
     else
       return false
     end
