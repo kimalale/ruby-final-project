@@ -4,7 +4,7 @@ class Chess
   attr_accessor :board, :points, :white_captured, :black_captured, :player
   @white_captured = []
   @black_captured = []
-  @player = ""
+  @player = "black"
   @message = ""
   def initialize
     @board_height = 8
@@ -45,9 +45,21 @@ class Chess
     occupied_board
   end
 
-  def promote
+  def promote(pawn_coordinate)
     puts "Pawn promotion:"
-    puts "1. Queen\n2. night\n3. "
+    puts "1. Queen\n2. Knight\n3. Bishop\n4. Rook"
+    answer = gets.chomp
+
+    case answer
+    when 1
+      @board[pawn_coordinate[0]][pawn_coordinate[1]] = Queen.new(@player)
+    when 2
+      @board[pawn_coordinate[0]][pawn_coordinate[1]] = Knight.new(@player)
+    when 3
+      @board[pawn_coordinate[0]][pawn_coordinate[1]] = Bishop.new(@player)
+    when 4
+      @board[pawn_coordinate[0]][pawn_coordinate[1]] = Rook.new(@player)
+    end
   end
 
   def check_castle
@@ -173,7 +185,7 @@ class Chess
     #   throw OutOfBounds # Throw an exception
     # end
 
-
+switch_player
     piece = @board[piece_location[0]][piece_location[1]]
     return if !piece.validate_move(piece_location, destination, @occupied_board)
 
@@ -187,14 +199,27 @@ class Chess
     @board[destination[0]][destination[1]] = @board[piece_location[0]][piece_location[1]]
     @board[piece_location[0]][piece_location[1]] = nil
 
+    # Check if player wants to castle
     @message = if check_castle then
        "Castling is availble on: #{coordinates_to_chess(check_castle[0])} , #{check_castle[1]}"
       else
         ""
       end
     rook_castles(castle) if castle && check_castle
+
+    # Promote pawn
+    promote(destination) if @board[destination[0]][destination[1]]::class == Pawn && (destination[0] == chess_to_coordinates("a1")[0] || destination[0] == chess_to_coordinates("a8")[0])
+
+    switch_player
   end
 
+  def switch_player
+    @player = if @player == "white" then
+                    "black"
+                    else
+                      "white"
+                    end
+  end
   def rook_castles(rook_coordinate)
     king_coordinate = if @player == "white" then
                   King.white
