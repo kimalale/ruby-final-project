@@ -2,7 +2,7 @@ require './common_moves'
 
 # Base class for the pieces
 class ChessPieces
-  attr_accessor :name, :type, :white, :black, :point
+  attr_accessor :name, :type, :white, :black, :point, :has_moved
   include PieceMoves
   def validate_move(initial_move, current_move, info_board);end
   @white = []
@@ -102,9 +102,11 @@ class Rook < ChessPieces
 
   def initialize(player_type)
     @type = player_type
+    @has_moved = false
   end
 
   def validate_move(initial_move, current_move, info_board)
+    @has_moved = true
     possible_moves = get_rook_moves(initial_move)
     if possible_moves.include?(current_move) then
       possible_moves.each do | position |
@@ -126,9 +128,15 @@ class King < ChessPieces
 
   def initialize(player_type)
     @type = player_type
+    @has_moved = false
+  end
+
+  def moved
+    @has_moved == true
   end
 
   def validate_move(initial_move, current_move, info_board)
+    @has_moved = true
     possible_moves = get_king_moves(initial_move)
       return possible_moves.include?(current_move)
   end
