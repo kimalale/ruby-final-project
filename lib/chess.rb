@@ -1,4 +1,4 @@
-require './chess_pieces'
+require_relative 'chess_pieces'
 
 class Chess
   attr_accessor :board, :points, :white_captured, :black_captured, :player

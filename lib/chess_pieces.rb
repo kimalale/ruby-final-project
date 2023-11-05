@@ -1,4 +1,4 @@
-require './common_moves'
+require_relative 'common_moves.rb'
 
 # Base class for the pieces
 class ChessPieces
