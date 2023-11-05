@@ -2,6 +2,8 @@ require './chess_pieces'
 
 class Chess
   attr_accessor :board, :points, :white_captured, :black_captured, :player
+  @check = { "black" => nil, "white" => nil}
+  @check_mate = false
   @white_captured = []
   @black_captured = []
   @player = "black"
@@ -180,12 +182,17 @@ class Chess
 
   def move_piece(piece_location, destination, castle = nil)
 
+    # Check if a king piece is checked
+    check_flag = false
+    check_flag = !@check[@player].empty?
+
+
     # # Check if the starting and destination points is valid
     # if (starting_point[0] < 0 || starting_point[1] >= 8) || (destination[0] < 0 || destination[1] >= 8)
     #   throw OutOfBounds # Throw an exception
     # end
 
-switch_player
+
     piece = @board[piece_location[0]][piece_location[1]]
     return if !piece.validate_move(piece_location, destination, @occupied_board)
 
@@ -195,9 +202,12 @@ switch_player
       @board[destination[0]][destination[1]] = nil
     end
 
+    return if !check.empty?
+
     # If there is nothing then we move the piece to the destination
     @board[destination[0]][destination[1]] = @board[piece_location[0]][piece_location[1]]
     @board[piece_location[0]][piece_location[1]] = nil
+
 
     # Check if player wants to castle
     @message = if check_castle then
@@ -210,6 +220,15 @@ switch_player
     # Promote pawn
     promote(destination) if @board[destination[0]][destination[1]]::class == Pawn && (destination[0] == chess_to_coordinates("a1")[0] || destination[0] == chess_to_coordinates("a8")[0])
 
+    # Store possible checks
+    @check[@player] = check
+
+    # Check if king is checkmated
+    check_mate = get_king_moves(initial_move).all? { | element | check.include?(element) }
+    game_over = true if check_mate
+    @message = "Player #{@player} has won by checkmate" if game_over
+
+    # Change the player
     switch_player
   end
 
@@ -247,6 +266,32 @@ switch_player
     end
 
     @message = "Castled Rook to #{coordinates_to_chess(rook_coordinate)}"
+  end
+
+  def get_king_coordinate
+    king_coordinate = []
+    @board.each_with_index do |row, outter_index|
+      coordinate.each_with_index do | col, inner_index|
+        king_coordinate = [outter_index, inner_index] if col::class == King && col::type == @player
+        break if inner == 5
+      end
+    end
+    king_coordinate
+  end
+
+  def check
+    king_coordinate = get_king_coordinate
+    opponent_player = []
+    @board.each do | piece_row |
+      @board[piece_row].each do | piece_column |
+        if @player == "white" then
+          opponent_player << @board[piece_row][piece_column].get_moves([piece_row, piece_column]) if @board[piece_row][piece_column]::type == "black" &&  @board[piece_row][piece_column].get_moves([piece_row, piece_column]).include?(king_coordinate)
+        else
+          opponent_player << @board[piece_row][piece_column].get_moves([piece_row, piece_column]) if @board[piece_row][piece_column]::type == "white" &&  @board[piece_row][piece_column].get_moves([piece_row, piece_column]).include?(king_coordinate)
+        end
+      end
+    end
+    opponent_player
   end
 
   def format_piece(piece)
