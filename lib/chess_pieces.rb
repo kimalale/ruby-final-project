@@ -20,6 +20,9 @@ class ChessPieces
   def self.point
     @point
   end
+
+  def get_moves
+  end
 end
 
 # (1)
@@ -43,6 +46,10 @@ class Pawn < ChessPieces
     return true
   end
   return false
+  end
+
+  def get_moves(initial_move)
+    get_pawn_moves(initial_move)
   end
 end
 
@@ -71,6 +78,10 @@ class Bishop < ChessPieces
     end
     return true
   end
+
+  def get_moves(initial_move)
+    get_diagonal_elements(initial_move)
+  end
 end
 
 # (3)
@@ -90,6 +101,10 @@ class Knight < ChessPieces
       return true if position == destination
     end
     return false
+  end
+
+  def get_moves(initial_move)
+    get_knight_moves(initial_move)
   end
 end
 
@@ -117,6 +132,10 @@ class Rook < ChessPieces
     end
     return false
   end
+
+  def get_moves(initial_move)
+    get_rook_moves(initial_move)
+  end
 end
 
 # (5)
@@ -139,6 +158,9 @@ class King < ChessPieces
     @has_moved = true
     possible_moves = get_king_moves(initial_move)
       return possible_moves.include?(current_move)
+  end
+  def get_moves(initial_move)
+    get_king_moves(initial_move)
   end
 end
 
@@ -176,6 +198,10 @@ class Queen < ChessPieces
       return false
     end
     return true
+  end
+
+  def get_moves(initial_move)
+    get_queen_moves(initial_move)
   end
 end
 
