@@ -105,7 +105,7 @@ class Knight < ChessPieces
   end
 
   def validate_move(initial_move, destination, info_board)
-    possible_moves = get_knight_moves(initial_move)
+    possible_moves = get_knight_moves(initial_move, destination)
     possible_moves.each do | position |
       return true if position == destination
     end
@@ -128,18 +128,52 @@ class Rook < ChessPieces
     @type = player_type
     @has_moved = false
   end
-
+  #validating [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
   def validate_move(initial_move, destination, info_board)
     @has_moved = true
-    possible_moves = get_rook_moves(initial_move)
+
+    # Filter moves that might cause false negatives
+    possible_moves = get_rook_moves(initial_move, destination)
+
+    if initial_move[0] == destination[0] && initial_move[1] < destination[1] then
+      possible_moves.filter! { |m| m[1] > initial_move[1] && m[1] <= destination[1]  }
+    elsif initial_move[0] == destination[0] && initial_move[1] > destination[1] then
+      possible_moves.filter! { |m| m[1] < initial_move[1] && m[1] >= destination[1]  }
+    elsif initial_move[1] == destination[1] && initial_move[0] < destination[0] then
+      possible_moves.filter! { |m| m[0] > initial_move[0] && m[0] <= destination[0]  }
+    elsif initial_move[1] == destination[1] && initial_move[0] > destination[0] then
+      possible_moves.filter! { |m| m[0] < initial_move[0] && m[0] >= destination[0]  }
+    end
+
+
+
+
+
+    print "validating #{possible_moves}"
+    sleep(10)
     if possible_moves.include?(destination) then
       possible_moves.each do | position |
+        next if position == initial_move
+        if destination[0] == initial_move[0] then
+          next if destination[1] > initial_move[1] && position[1] > initial_move[1]
+          next if destination[1] < initial_move[1] && position[1] < initial_move[1]
+        end
+
+
+        if destination[1] == initial_move[1] then
+          next if destination[0] > initial_move[0] && position[0] > initial_move[1]
+          next if destination[0] < initial_move[0] && position[0] < initial_move[1]
+        end
+
         return true if destination == position
-        return false if info_board[position[0]][position[1]]
+
+        return false if info_board[position[0]][position[1]] == true
       end
-      return info_board[destination[0]][destination[1]] == false
+      return true
     end
     return false
+
+
   end
 
   def get_moves(initial_move, destination)
@@ -190,19 +224,22 @@ class Queen < ChessPieces
 
     #Handle queen using bishop
     #TODO: handle this => - @type] if info_board.piece_at(destination) == nil
+   # [[0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2]]]
 
     #=> M(Q-B)
+
+
     if possible_moves[0].include?(destination) then
       possible_moves[0].each do | position |
         return true if destination == position
-        return false if info_board[position[0]][position[1]]
+        return false if info_board[position[0]][position[1]] != false
       end
-    elsif possible_moves[1].include?(destination) then
+    elsif possible_moves[1].include?(destination) then # rook
       possible_moves[1].each do | position |
         return true if destination == position
-        return false if info_board[position[0]][position[1]]
+        return false if info_board[position[0]][position[1]] != false
       end
-      return info_board[destination[0]][destination[1]] == nil # Might not get reached
+      return info_board[destination[0]][destination[1]] == false
     else
       return false
     end
