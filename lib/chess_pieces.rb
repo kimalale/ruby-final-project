@@ -38,11 +38,15 @@ class Pawn < ChessPieces
   end
 
   def validate_move(initial_move, destination, info_board)
+
+  return true if ((destination[0] == initial_move[0] + 2) && (destination[1] == initial_move[1]) ) && @first_move # Black Pawns
+  return true if ((destination[0] == initial_move[0] - 2) && (destination[1] == initial_move[1]) ) && @first_move # White Pawns
+
   possible_moves = get_pawn_moves(initial_move)
   if possible_moves.include?(destination) then
       return true if destination[1] == initial_move[1] && info_board[destination[0]][destination[1]] == false
       return false if destination[1] == initial_move[1] && info_board[destination[0]][destination[1]] != false
-      return true
+      return true if info_board[destination[0]][destination[1]] != false
   end
   return false
   end
@@ -50,6 +54,8 @@ class Pawn < ChessPieces
   def get_moves(initial_move, destination)
     get_pawn_moves(initial_move)
   end
+
+  @first_move = false
 end
 
 # (2)
