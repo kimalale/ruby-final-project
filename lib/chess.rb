@@ -1,12 +1,11 @@
 require_relative 'chess_pieces'
 
 class Chess
-  attr_accessor :board, :points, :white_captured, :black_captured, :player
-  @check = { "black" => nil, "white" => nil}
+  attr_accessor :board, :points, :white_captured, :black_captured, :player, :check_mate
   @check_mate = false
   @white_captured = []
   @black_captured = []
-  @player = "black"
+
   @message = ""
   def initialize
     @board_height = 8
@@ -14,6 +13,8 @@ class Chess
     @board = nil
     @occupied_board = nil
     create_board
+    @check = { "black" => [], "white" => []}
+    @player = "black"
   end
 
   def capture(piece, player_type)
@@ -76,11 +77,11 @@ class Chess
       rooks = Rook.white
     else
       king = King.black
-      rooks = Rook.clack
+      rooks = Rook.black
     end
 
     #check if the King has moved
-    king_coordinates = chess_to_coordinates(king)
+    king_coordinates = chess_to_coordinates(king[0])
 
     return if @board[king_coordinates[0]][king_coordinates[1]]::class == King
 
@@ -158,7 +159,7 @@ class Chess
     chess_string = chess_string.downcase
     x = chess_string[1].to_i - 1
     y = chess_string[0].ord - 'a'.ord
-    return [x, y]
+    return [7 - x.to_i, y.to_i]
   end
 
   # Convert chess notation to coordinates (e.g., [0, 0] to "A1")
@@ -181,10 +182,14 @@ class Chess
   end
 
   def move_piece(piece_location, destination, castle = nil)
+    occupied_board
+    piece_location = chess_to_coordinates(piece_location)
+    destination = chess_to_coordinates(destination)
+
 
     # Check if a king piece is checked
     check_flag = false
-    check_flag = !@check[@player].empty?
+    check_flag = !check.empty?
 
 
     # # Check if the starting and destination points is valid
@@ -194,15 +199,18 @@ class Chess
 
 
     piece = @board[piece_location[0]][piece_location[1]]
-    return if !piece.validate_move(piece_location, destination, @occupied_board)
 
+    puts "End here..."
+    return if !piece.validate_move(piece_location, destination, @occupied_board)
+    puts "End here..."
     # If the slot we're going to is occupied by a piece, then we capture the piece
     if @board[destination[0]][destination[1]] != nil then
       capture(@board[destination[0]][destination[1]], @player)
       @board[destination[0]][destination[1]] = nil
     end
 
-    return if !check.empty?
+    check_flag = check.empty?
+    return if check_flag
 
     # If there is nothing then we move the piece to the destination
     @board[destination[0]][destination[1]] = @board[piece_location[0]][piece_location[1]]
@@ -224,7 +232,7 @@ class Chess
     @check[@player] = check
 
     # Check if king is checkmated
-    check_mate = get_king_moves(initial_move).all? { | element | check.include?(element) }
+    check_mate = @board[get_king_coordinate[0]][get_king_coordinate[1]].get_king_moves(get_king_coordinate, nil).all? { | element | check.include?(element) }
     game_over = true if check_mate
     @message = "Player #{@player} has won by checkmate" if game_over
 
@@ -271,23 +279,28 @@ class Chess
   def get_king_coordinate
     king_coordinate = []
     @board.each_with_index do |row, outter_index|
-      coordinate.each_with_index do | col, inner_index|
-        king_coordinate = [outter_index, inner_index] if col::class == King && col::type == @player
-        break if inner == 5
+      row.each_with_index do | col, inner_index|
+        #print col.type if col != nil
+        king_coordinate << outter_index << inner_index if col::class == King && col.type == @player
+        break if !king_coordinate.empty?
       end
     end
+
     king_coordinate
   end
 
   def check
     king_coordinate = get_king_coordinate
+
     opponent_player = []
-    @board.each do | piece_row |
-      @board[piece_row].each do | piece_column |
-        if @player == "white" then
-          opponent_player << @board[piece_row][piece_column].get_moves([piece_row, piece_column]) if @board[piece_row][piece_column]::type == "black" &&  @board[piece_row][piece_column].get_moves([piece_row, piece_column]).include?(king_coordinate)
-        else
-          opponent_player << @board[piece_row][piece_column].get_moves([piece_row, piece_column]) if @board[piece_row][piece_column]::type == "white" &&  @board[piece_row][piece_column].get_moves([piece_row, piece_column]).include?(king_coordinate)
+    @board.each_with_index do | piece_row, outter_index |
+      piece_row.each_with_index do | piece_column, inner_index |
+        common_coordinates = []
+        common_coordinates = piece_column.get_moves([outter_index, inner_index],king_coordinate) if piece_column != nil
+        if @player == "white" && piece_column != nil then
+          opponent_player << common_coordinates if @board[outter_index][inner_index]::type == "black" && common_coordinates.include?(king_coordinate)
+        elsif @player == "black" && piece_column != nil then
+          opponent_player << common_coordinates if @board[outter_index][inner_index]::type == "white" && common_coordinates.include?(king_coordinate)
         end
       end
     end
@@ -341,14 +354,67 @@ class Chess
     end
   end
 
+  def format_piec(piece)
+    case piece::class.to_s
+    when "Pawn" then
+      case piece::type
+      when "white"
+        "wP"
+      else
+        "bP"
+      end
+    when "Bishop"
+      case piece::type
+      when "white"
+        "wB"
+      else
+        "bB"
+      end
+    when "Knight"
+      case piece::type
+      when "white"
+        "wKn"
+      else
+        "bKn"
+      end
+    when "Rook"
+      case piece::type
+      when "white"
+        "wR"
+      else
+        "bR"
+      end
+    when "King"
+      case piece::type
+      when "white"
+        "wK"
+      else
+        "bK"
+      end
+    when "Queen"
+      case piece::type
+      when "white"
+        "wQ"
+      else
+        "bQ"
+      end
+    end
+  end
+
   def show_board
 
-    @board.each do |valueline|
+    @board.each_with_index do |valueline, index|
+      print "#{8 - index} "
       valueline.each do | piece |
-        print " #{self.format_piece(piece)} "
+        print " #{self.format_piec(piece)} "
       end
       puts ""
     end
+    print "  "
+    ('a'...'h').each do | letter |
+      print " #{letter}   "
+    end
+    puts ""
   end
 
 end

@@ -8,7 +8,7 @@ module PieceMoves
   end
 
   #Pawn moves
-  def get_pawn_moves(destination)
+  def get_pawn_moves(initial_move, destination = nil)
     possible_moves = 6
     valid_moves = []
 
@@ -16,7 +16,7 @@ module PieceMoves
     y = [-1, 0, 1, -1,  0,  1] # Vertical moves (b)
 
     possible_moves.times do |n|
-      move = [destination[0] + x[n], destination[1] + y[n]]
+      move = [initial_move[0] + x[n], initial_move[1] + y[n]]
       valid_moves << move if is_in_bounds(move)
     end
     valid_moves
@@ -70,7 +70,7 @@ module PieceMoves
 
 
   # Knight and Queen common moves
-  def get_knight_moves(coordinate)
+  def get_knight_moves(initial_move, destination)
     possible_moves = 8
     valid_moves = []  # Empty array to store possible move
 
@@ -80,7 +80,7 @@ module PieceMoves
 
     # Loop, validate and store
     possible_moves.times do |n|
-      move = [coordinate[0] + x[n], coordinate[1] + y[n]]
+      move = [initial_move[0] + x[n], initial_move[1] + y[n]]
       valid_moves << move if is_in_bounds(move)
     end
 
@@ -109,8 +109,9 @@ module PieceMoves
     valid_moves #=> Return (R)
   end
 
+
   # King Moves
-  def get_king_moves(initial_move)
+  def get_king_moves(initial_move, destination)
     possible_moves = 8
     valid_moves = [] # (A)
 

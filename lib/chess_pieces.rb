@@ -21,7 +21,7 @@ class ChessPieces
     @point
   end
 
-  def get_moves
+  def get_moves(initial_move, destination)
   end
 end
 
@@ -37,18 +37,17 @@ class Pawn < ChessPieces
     @first_move = true
   end
 
-  def validate_move(initial_move, destination, board)
+  def validate_move(initial_move, destination, info_board)
   possible_moves = get_pawn_moves(initial_move)
-  if possible_moves.include?(current_move) then
-    possible_moves.each do | position |
-      return false if destination[1] == position[1] && info_board[position[0]][position[1]]
-    end
-    return true
+  if possible_moves.include?(destination) then
+      return true if destination[1] == initial_move[1] && info_board[destination[0]][destination[1]] == false
+      return false if destination[1] == initial_move[1] && info_board[destination[0]][destination[1]] != false
+      return true
   end
   return false
   end
 
-  def get_moves(initial_move)
+  def get_moves(initial_move, destination)
     get_pawn_moves(initial_move)
   end
 end
@@ -65,10 +64,14 @@ class Bishop < ChessPieces
   end
 
   def validate_move(initial_move, destination, info_board)
+
+
     begin
       diagonal = get_diagonal_elements(initial_move, destination)
     rescue OutOfBounds
       p "Given point is out of range [0-7, 0-7])"
+    else
+      p "Some kak kak kak kak kak happened"
     end
 
     # Check if destination is empty #=> M(B)
@@ -79,8 +82,8 @@ class Bishop < ChessPieces
     return true
   end
 
-  def get_moves(initial_move)
-    get_diagonal_elements(initial_move)
+  def get_moves(initial_move, destination)
+    get_diagonal_elements(initial_move,destination)
   end
 end
 
@@ -103,8 +106,8 @@ class Knight < ChessPieces
     return false
   end
 
-  def get_moves(initial_move)
-    get_knight_moves(initial_move)
+  def get_moves(initial_move, destination)
+    get_knight_moves(initial_move,destination)
   end
 end
 
@@ -120,21 +123,21 @@ class Rook < ChessPieces
     @has_moved = false
   end
 
-  def validate_move(initial_move, current_move, info_board)
+  def validate_move(initial_move, destination, info_board)
     @has_moved = true
     possible_moves = get_rook_moves(initial_move)
-    if possible_moves.include?(current_move) then
+    if possible_moves.include?(destination) then
       possible_moves.each do | position |
-        return true if current_move == position
+        return true if destination == position
         return false if info_board[position[0]][position[1]]
       end
-      return info_board[current_move[0]][current_move[1]] == false
+      return info_board[destination[0]][destination[1]] == false
     end
     return false
   end
 
-  def get_moves(initial_move)
-    get_rook_moves(initial_move)
+  def get_moves(initial_move, destination)
+    get_rook_moves(initial_move,destination)
   end
 end
 
@@ -154,13 +157,13 @@ class King < ChessPieces
     @has_moved == true
   end
 
-  def validate_move(initial_move, current_move, info_board)
+  def validate_move(initial_move, destination, info_board)
     @has_moved = true
-    possible_moves = get_king_moves(initial_move)
-      return possible_moves.include?(current_move)
+    possible_moves = get_king_moves(initial_move, nil)
+      return possible_moves.include?(destination)
   end
-  def get_moves(initial_move)
-    get_king_moves(initial_move)
+  def get_moves(initial_move, destination)
+    get_king_moves(initial_move,destination)
   end
 end
 
@@ -200,8 +203,8 @@ class Queen < ChessPieces
     return true
   end
 
-  def get_moves(initial_move)
-    get_queen_moves(initial_move)
+  def get_moves(initial_move, destination)
+    get_queen_moves(initial_move,destination)
   end
 end
 
