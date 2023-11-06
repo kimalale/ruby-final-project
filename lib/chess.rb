@@ -1,7 +1,9 @@
 require_relative 'chess_pieces'
+require_relative 'serializable'
 
 class Chess
   attr_accessor :board, :points, :white_captured, :black_captured, :player, :check_mate
+  include BasicSerializable
   @check_mate = false
   @white_captured = []
   @black_captured = []
@@ -14,9 +16,10 @@ class Chess
     @occupied_board = nil
     create_board
     @check = { "black" => [], "white" => []}
-    @player = "black"
+    @player = "white"
   end
 
+  private
   def capture(piece, player_type)
     @black_captured << piece if player_type == "black"
     @white_captured << piece if player_type == "white"
@@ -181,65 +184,6 @@ class Chess
     end
   end
 
-  def move_piece(piece_location, destination, castle = nil)
-    occupied_board
-    piece_location = chess_to_coordinates(piece_location)
-    destination = chess_to_coordinates(destination)
-
-
-    # Check if a king piece is checked
-    check_flag = false
-    check_flag = !check.empty?
-
-
-    # # Check if the starting and destination points is valid
-    # if (starting_point[0] < 0 || starting_point[1] >= 8) || (destination[0] < 0 || destination[1] >= 8)
-    #   throw OutOfBounds # Throw an exception
-    # end
-
-
-    piece = @board[piece_location[0]][piece_location[1]]
-
-    puts "End here..."
-    return if !piece.validate_move(piece_location, destination, @occupied_board)
-    puts "End here..."
-    # If the slot we're going to is occupied by a piece, then we capture the piece
-    if @board[destination[0]][destination[1]] != nil then
-      capture(@board[destination[0]][destination[1]], @player)
-      @board[destination[0]][destination[1]] = nil
-    end
-
-    check_flag = check.empty?
-    return if check_flag
-
-    # If there is nothing then we move the piece to the destination
-    @board[destination[0]][destination[1]] = @board[piece_location[0]][piece_location[1]]
-    @board[piece_location[0]][piece_location[1]] = nil
-
-
-    # Check if player wants to castle
-    @message = if check_castle then
-       "Castling is availble on: #{coordinates_to_chess(check_castle[0])} , #{check_castle[1]}"
-      else
-        ""
-      end
-    rook_castles(castle) if castle && check_castle
-
-    # Promote pawn
-    promote(destination) if @board[destination[0]][destination[1]]::class == Pawn && (destination[0] == chess_to_coordinates("a1")[0] || destination[0] == chess_to_coordinates("a8")[0])
-
-    # Store possible checks
-    @check[@player] = check
-
-    # Check if king is checkmated
-    check_mate = @board[get_king_coordinate[0]][get_king_coordinate[1]].get_king_moves(get_king_coordinate, nil).all? { | element | check.include?(element) }
-    game_over = true if check_mate
-    @message = "Player #{@player} has won by checkmate" if game_over
-
-    # Change the player
-    switch_player
-  end
-
   def switch_player
     @player = if @player == "white" then
                     "black"
@@ -401,6 +345,83 @@ class Chess
     end
   end
 
+
+
+
+  public
+  def move_piece(piece_location, destination, castle = nil)
+    occupied_board
+    piece_location = chess_to_coordinates(piece_location)
+    destination = chess_to_coordinates(destination)
+
+
+    # Check if a king piece is checked
+    check_flag = false
+    check_flag = !check.empty?
+
+
+    # # Check if the starting and destination points is valid
+    # if (starting_point[0] < 0 || starting_point[1] >= 8) || (destination[0] < 0 || destination[1] >= 8)
+    #   throw OutOfBounds # Throw an exception
+    # end
+
+
+    piece = @board[piece_location[0]][piece_location[1]]
+    return if piece.type != @player
+    return if !piece.validate_move(piece_location, destination, @occupied_board)
+    # If the slot we're going to is occupied by a piece, then we capture the piece
+    if @board[destination[0]][destination[1]] != nil then
+      capture(@board[destination[0]][destination[1]], @player)
+      @board[destination[0]][destination[1]] = nil
+    end
+
+    check_flag = check.empty?
+    return if check_flag
+
+    # If there is nothing then we move the piece to the destination
+    @board[destination[0]][destination[1]] = @board[piece_location[0]][piece_location[1]]
+    @board[piece_location[0]][piece_location[1]] = nil
+
+
+    # Check if player wants to castle
+    @message = if check_castle then
+       "Castling is availble on: #{coordinates_to_chess(check_castle[0])} , #{check_castle[1]}"
+      else
+        ""
+      end
+    rook_castles(castle) if castle && check_castle
+
+    # Promote pawn
+    promote(destination) if @board[destination[0]][destination[1]]::class == Pawn && (destination[0] == chess_to_coordinates("a1")[0] || destination[0] == chess_to_coordinates("a8")[0])
+
+    # Store possible checks
+    @check[@player] = check
+
+    # Check if king is checkmated
+    check_mate = @board[get_king_coordinate[0]][get_king_coordinate[1]].get_king_moves(get_king_coordinate, nil).all? { | element | check.include?(element) }
+    game_over = true if check_mate
+    @message = "Player #{@player} has won by checkmate" if game_over
+
+    # Change the player
+    switch_player
+  end
+
+  def serialize
+    obj = {}
+    instance_variables.map do |var|
+      obj[var] = instance_variable_get(var)
+    end
+
+    @@serializer.dump obj
+  end
+
+  def unserialize(string)
+    obj = @@serializer.parse(string)
+    obj.keys.each do |key|
+      instance_variable_set(key, obj[key])
+    end
+  end
+
   def show_board
 
     @board.each_with_index do |valueline, index|
@@ -417,5 +438,38 @@ class Chess
     puts ""
   end
 
+
+
+  # USE A SAVED DATABASE FOR TESTING AI PLAYER
+  # def open_file
+  #   content_word = File.readlines('google-10000-english-no-swears.txt').map { |line| line.chomp }
+  #   content_word.select { |word| (5..12).include?(word.length) }
+  # end
+
+
+end
+# Global function
+def how_to_play
+  <<-DOC
+  Welcome to meChess terminal based chess game (for now...).
+
+    Here's how to play the game.
+      1) Enter the location of the piece you wish to move, and the location you wish to move the piece
+         separated by a whitespace.
+         e.g) => A2 A4
+      2) If you wish to castle follow [1], and add an extra parameter 1 for yes/true (indicating you wish to castle)
+      3) Save the game if you feel like resting
+      4) Load presaved games
+DOC
 end
 
+def save(filename, object)
+  File.open("./saved/" + filename,"w") do | f |
+    f.write(object.serialize)
+  end
+end
+
+def load(filename, object)
+  json = File.read(filename)
+  object.unserialize(json)
+end
