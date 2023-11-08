@@ -64,6 +64,7 @@ module PieceMoves
         diagonal_elements << [row, col]
       end
     end
+    diagonal_elements << [destination[0], destination[1]]
 
     diagonal_elements #=> Return (R)
   end
@@ -95,17 +96,22 @@ module PieceMoves
     x = initial_move[0] # Horizontal moves (a)
     y = initial_move[1] # Vertical moves (b)
 
+
+
     if x == destination[0]
       possible_moves.times do |i|
-        valid_moves << [x, i] # (a)
+        valid_moves << [x, i] if [i, y] != initial_move  # (a)
         break if [x, i] == destination
       end
-    elsif y = destination[1]
+    elsif y == destination[1]
       possible_moves.times do |i|
-        valid_moves << [i, y] # (b)
+        valid_moves << [i, y] if [i, y] != initial_move # (b)
         break if [i, y] == destination
       end
     end
+
+
+
     valid_moves #=> Return (R)
   end
 
