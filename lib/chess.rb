@@ -4,19 +4,22 @@ require_relative 'serializable'
 class Chess
   attr_accessor :board, :points, :white_captured, :black_captured, :player, :check_mate
   include BasicSerializable
-  @check_mate = false
-  @white_captured = []
-  @black_captured = []
 
-  @message = ""
   def initialize
     @board_height = 8
     @board_width = 8
     @board = nil
     @occupied_board = nil
+    @serialize_board = nil
     create_board
     @check = { "black" => [], "white" => []}
     @player = "white"
+    @check_mate = false
+    @white_captured = []
+    @black_captured = []
+
+
+    @message = ""
   end
 
   private
@@ -27,6 +30,7 @@ class Chess
 
   def create_board
     @board = Array.new(@board_height) { Array.new(@board_width) { nil } }
+    @serialize_board = Array.new(@board_height) { Array.new(@board_width) { nil } }
     @occupied_board = Array.new(@board_height) { Array.new(@board_width) { nil } }
     add_pieces(@board)
   end
@@ -46,15 +50,17 @@ class Chess
         chess_coordinate = chess_to_coordinates(piece_location)
         @board[chess_coordinate[0]][chess_coordinate[1]] = player_piece.new("black")
       end
-    end
 
+
+
+    end
     occupied_board
   end
 
   def promote(pawn_coordinate)
     puts "Pawn promotion:"
     puts "1. Queen\n2. Knight\n3. Bishop\n4. Rook"
-    answer = gets.chomp
+    answer = gets.chomp.to_i
 
     case answer
     when 1
@@ -159,6 +165,7 @@ class Chess
 
   # Convert chess notation to coordinates (e.g., "A1" to [0, 0])
   def chess_to_coordinates(chess_string)
+
     chess_string = chess_string.downcase
     x = chess_string[1].to_i - 1
     y = chess_string[0].ord - 'a'.ord
@@ -347,6 +354,44 @@ class Chess
 
 
 
+  def return_type(identifier)
+    case identifier
+    when "Pawn" then
+      Pawn
+    when "Bishop" then
+      Bishop
+    when "Knight" then
+      Knight
+    when "Rook" then
+      Rook
+    when "King" then
+      King
+    when "Queen" then
+      Queen
+    else
+      nil
+    end
+  end
+
+  def serialize_board
+    @board_height.times do | row |
+      @board_width.times do | col |
+
+        @serialize_board[row][col] = [@board[row][col]::class, @board[row][col].type] if @board[row][col] != nil
+      end
+    end
+  end
+
+  def unserialize_board
+    @serialize_board.each_with_index do | row , index_r |
+      row.each_with_index do | col , index_c |
+        @board[index_r][index_c] = return_type(col[0]).new(col[1]) if col != nil
+        @board[index_r][index_c] = nil if col == nil
+      end
+    end
+    @serialize_board.clear
+  end
+
 
   public
   def move_piece(piece_location, destination, castle = nil)
@@ -354,6 +399,8 @@ class Chess
     piece_location = chess_to_coordinates(piece_location)
     destination = chess_to_coordinates(destination)
 
+    # rETURN IF GIVEN INVALID PIECE LOC
+    return if @board[piece_location[0]][piece_location[1]] == nil
 
     # Check if a king piece is checked
     check_flag = false
@@ -371,6 +418,7 @@ class Chess
     return if !piece.validate_move(piece_location, destination, @occupied_board)
     # If the slot we're going to is occupied by a piece, then we capture the piece
     if @board[destination[0]][destination[1]] != nil then
+      return if @board[destination[0]][destination[1]].type == @player
       capture(@board[destination[0]][destination[1]], @player)
       @board[destination[0]][destination[1]] = nil
     end
@@ -408,7 +456,9 @@ class Chess
 
   def serialize
     obj = {}
+    serialize_board
     instance_variables.map do |var|
+      next if instance_variable_get(var) == @board || instance_variable_get(var) == @board_height || instance_variable_get(var) == @board_width
       obj[var] = instance_variable_get(var)
     end
 
@@ -420,6 +470,7 @@ class Chess
     obj.keys.each do |key|
       instance_variable_set(key, obj[key])
     end
+    unserialize_board
   end
 
   def show_board
@@ -427,13 +478,14 @@ class Chess
     @board.each_with_index do |valueline, index|
       print "#{8 - index} "
       valueline.each do | piece |
-        print " #{self.format_piec(piece)} "
+        print "  #{self.format_piec(piece)} " if piece != nil
+        print "    " if piece == nil
       end
       puts ""
     end
-    print "  "
-    ('a'...'h').each do | letter |
-      print " #{letter}   "
+    print " "
+    ('a'...'i').each do | letter |
+      print "    #{letter}"
     end
     puts ""
   end
