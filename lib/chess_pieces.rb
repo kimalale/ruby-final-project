@@ -17,6 +17,9 @@ class ChessPieces
   def self.type
     @type
   end
+  def type
+    @type
+  end
   def self.point
     @point
   end
@@ -27,6 +30,7 @@ end
 
 # (1)
 class Pawn < ChessPieces
+  attr_accessor :type
   @@name = "Pawn"
   @white = ["a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"] #=> Initial White Point I(w)
   @black = ["a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7"] #=> Initial Black Point I(b)
